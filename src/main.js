@@ -44,7 +44,7 @@ app.innerHTML = `
           <div class="hero-actions">
             <button class="play-button" type="button" data-play disabled>
               <span class="play-icon" data-play-icon>▶</span>
-              <span data-play-label>استمع الآن</span>
+              <span data-play-label>البث غير متاح الآن</span>
             </button>
             <div class="listener-count" data-listeners hidden></div>
           </div>
@@ -123,6 +123,10 @@ const refs = {
   miniStatus: pick('[data-mini-status]'),
 };
 
+// The author stylesheet gives the player bar an explicit display mode, so keep
+// it explicitly hidden until playback actually starts.
+refs.playerBar.style.display = 'none';
+
 const audio = new Audio();
 audio.preload = 'none';
 let apiState = normalizeNowPlaying(null, radioConfig);
@@ -200,6 +204,12 @@ function renderHero() {
 
   refs.play.disabled = !canListen;
 
+  if (!canListen) {
+    if (!audio.paused) audio.pause();
+    refs.playerBar.hidden = true;
+    refs.playerBar.style.display = 'none';
+  }
+
   if (onAir) {
     refs.statusDot.classList.add('is-live');
     refs.statusLabel.textContent = apiState.isLive ? 'مباشر الآن' : 'على الهواء الآن';
@@ -232,6 +242,7 @@ function renderHero() {
   refs.miniTitle.textContent = apiState.title || activeProgram?.title || 'راديو حبق';
   refs.miniArtist.textContent = apiState.artist || activeProgram?.title || 'البث المباشر';
   refs.miniStatus.textContent = onAir ? 'ON AIR' : 'RADIO HABAQ';
+  renderPlaybackState();
 }
 
 async function togglePlayback() {
@@ -242,6 +253,7 @@ async function togglePlayback() {
     try {
       await audio.play();
       refs.playerBar.hidden = false;
+      refs.playerBar.style.display = 'grid';
     } catch (error) {
       console.error('Unable to start radio stream', error);
     }
@@ -253,7 +265,7 @@ async function togglePlayback() {
 function renderPlaybackState() {
   const playing = !audio.paused;
   refs.playIcon.textContent = playing ? 'Ⅱ' : '▶';
-  refs.playLabel.textContent = playing ? 'إيقاف مؤقت' : 'استمع الآن';
+  refs.playLabel.textContent = playing ? 'إيقاف مؤقت' : onAir ? 'استمع الآن' : 'البث غير متاح الآن';
   refs.miniPlay.textContent = playing ? 'Ⅱ' : '▶';
 }
 

@@ -1,7 +1,14 @@
 const trimSlash = (value = '') => value.replace(/\/+$/, '');
 
-const azuracastUrl = trimSlash(import.meta.env.VITE_AZURACAST_URL || '');
-const stationShortcode = import.meta.env.VITE_AZURACAST_STATION || '';
+const DEFAULT_AZURACAST_URL = 'https://radio.habaq.media';
+const DEFAULT_STATION_SHORTCODE = 'habaq';
+const DEFAULT_STREAM_URL = 'https://radio.habaq.media/listen/habaq/radio.mp3';
+
+const azuracastUrl = trimSlash(
+  import.meta.env.VITE_AZURACAST_URL || DEFAULT_AZURACAST_URL,
+);
+const stationShortcode =
+  import.meta.env.VITE_AZURACAST_STATION || DEFAULT_STATION_SHORTCODE;
 
 export const radioConfig = {
   stationName: 'راديو حبق',
@@ -10,10 +17,8 @@ export const radioConfig = {
   stationShortcode,
   nowPlayingUrl:
     import.meta.env.VITE_AZURACAST_NOW_PLAYING_URL ||
-    (azuracastUrl && stationShortcode
-      ? `${azuracastUrl}/api/nowplaying/${stationShortcode}`
-      : ''),
-  streamUrl: import.meta.env.VITE_STREAM_URL || '',
+    `${azuracastUrl}/api/nowplaying/${stationShortcode}`,
+  streamUrl: import.meta.env.VITE_STREAM_URL || DEFAULT_STREAM_URL,
   refreshMs: 15000,
 };
 
