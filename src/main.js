@@ -36,7 +36,7 @@ app.innerHTML = `
           </div>
 
           <p class="eyebrow" data-eyebrow>راديو حبق</p>
-          <h1 data-primary-title>موسيقى، أصوات،<br />وحكايات تُسمع.</h1>
+          <h1 data-primary-title>موسيقى، أصوات، وحكايات تُسمع.</h1>
           <p class="hero-subtitle" data-secondary-title>
             بث إذاعي مستقل من السويداء، في أوقات محددة وبرامج لها شخصيتها.
           </p>
@@ -50,7 +50,7 @@ app.innerHTML = `
           </div>
         </div>
 
-        <div class="visual-stage" data-stage>
+        <div class="visual-stage">
           <div class="artwork" data-artwork>
             <div class="artwork-noise"></div>
             <div class="artwork-type">
@@ -100,34 +100,35 @@ app.innerHTML = `
   </div>
 `;
 
+const pick = (selector) => document.querySelector(selector);
 const refs = {
-  statusDot: document.querySelector('[data-status-dot]'),
-  statusLabel: document.querySelector('[data-status-label]'),
-  eyebrow: document.querySelector('[data-eyebrow]'),
-  primaryTitle: document.querySelector('[data-primary-title]'),
-  secondaryTitle: document.querySelector('[data-secondary-title]'),
-  play: document.querySelector('[data-play]'),
-  playIcon: document.querySelector('[data-play-icon]'),
-  playLabel: document.querySelector('[data-play-label]'),
-  listeners: document.querySelector('[data-listeners]'),
-  artwork: document.querySelector('[data-artwork]'),
-  trackCard: document.querySelector('[data-track-card]'),
-  trackTitle: document.querySelector('[data-track-title]'),
-  trackArtist: document.querySelector('[data-track-artist]'),
-  scheduleList: document.querySelector('[data-schedule-list]'),
-  playerBar: document.querySelector('[data-player-bar]'),
-  miniPlay: document.querySelector('[data-mini-play]'),
-  miniTitle: document.querySelector('[data-mini-title]'),
-  miniArtist: document.querySelector('[data-mini-artist]'),
-  miniStatus: document.querySelector('[data-mini-status]'),
+  statusDot: pick('[data-status-dot]'),
+  statusLabel: pick('[data-status-label]'),
+  eyebrow: pick('[data-eyebrow]'),
+  primaryTitle: pick('[data-primary-title]'),
+  secondaryTitle: pick('[data-secondary-title]'),
+  play: pick('[data-play]'),
+  playIcon: pick('[data-play-icon]'),
+  playLabel: pick('[data-play-label]'),
+  listeners: pick('[data-listeners]'),
+  artwork: pick('[data-artwork]'),
+  trackCard: pick('[data-track-card]'),
+  trackTitle: pick('[data-track-title]'),
+  trackArtist: pick('[data-track-artist]'),
+  scheduleList: pick('[data-schedule-list]'),
+  playerBar: pick('[data-player-bar]'),
+  miniPlay: pick('[data-mini-play]'),
+  miniTitle: pick('[data-mini-title]'),
+  miniArtist: pick('[data-mini-artist]'),
+  miniStatus: pick('[data-mini-status]'),
 };
 
 const audio = new Audio();
 audio.preload = 'none';
-
 let apiState = normalizeNowPlaying(null, radioConfig);
 let activeProgram = null;
 let nextProgram = null;
+let onAir = false;
 
 function getDamascusClock(date = new Date()) {
   const weekday = new Intl.DateTimeFormat('en-US', {
@@ -142,7 +143,6 @@ function getDamascusClock(date = new Date()) {
     hourCycle: 'h23',
   }).format(date);
   const [hour, minute] = time.split(':').map(Number);
-
   return { day: dayMap[weekday], minutes: hour * 60 + minute };
 }
 
@@ -156,7 +156,7 @@ function getProgramState() {
     const programDay = DAY_INDEX[program.day];
     const [hour, minute] = program.time.split(':').map(Number);
     const start = hour * 60 + minute;
-    const duration = program.durationMinutes || 120;
+    const duration = program.durationMinutes || 60;
 
     if (programDay === now.day && now.minutes >= start && now.minutes < start + duration) {
       current = program;
@@ -195,8 +195,8 @@ function renderSchedule() {
 
 function renderHero() {
   ({ current: activeProgram, next: nextProgram } = getProgramState());
-  const onAir = Boolean(activeProgram || apiState.isLive);
-  const canListen = Boolean(apiState.streamUrl);
+  onAir = Boolean(activeProgram || apiState.isLive);
+  const canListen = Boolean(apiState.streamUrl && onAir);
 
   refs.play.disabled = !canListen;
 
@@ -205,17 +205,13 @@ function renderHero() {
     refs.statusLabel.textContent = apiState.isLive ? 'مباشر الآن' : 'على الهواء الآن';
     refs.eyebrow.textContent = activeProgram?.title || apiState.streamer || 'راديو حبق';
     refs.primaryTitle.textContent = apiState.title || activeProgram?.title || 'راديو حبق';
-    refs.secondaryTitle.textContent =
-      apiState.artist || activeProgram?.description || radioConfig.tagline;
+    refs.secondaryTitle.textContent = apiState.artist || activeProgram?.description || radioConfig.tagline;
   } else {
     refs.statusDot.classList.remove('is-live');
-    refs.statusLabel.textContent = apiState.connected ? 'البث القادم' : 'البث غير متصل الآن';
+    refs.statusLabel.textContent = apiState.configured && !apiState.connected ? 'تعذر الاتصال بالبث' : 'البث القادم';
     refs.eyebrow.textContent = nextProgram?.title || 'راديو حبق';
-    refs.primaryTitle.textContent = nextProgram
-      ? `${nextProgram.day} · ${nextProgram.time}`
-      : radioConfig.tagline;
-    refs.secondaryTitle.textContent =
-      nextProgram?.description || 'سنعلن عن موعد البث القادم هنا.';
+    refs.primaryTitle.textContent = nextProgram ? `${nextProgram.day} · ${nextProgram.time}` : radioConfig.tagline;
+    refs.secondaryTitle.textContent = nextProgram?.description || 'سنعلن عن موعد البث القادم هنا.';
   }
 
   if (apiState.art && onAir) {
@@ -230,9 +226,8 @@ function renderHero() {
   refs.trackTitle.textContent = apiState.title;
   refs.trackArtist.textContent = apiState.artist;
 
-  refs.listeners.hidden = apiState.listeners === null;
-  refs.listeners.textContent =
-    apiState.listeners === null ? '' : `${apiState.listeners} يستمعون الآن`;
+  refs.listeners.hidden = apiState.listeners === null || !onAir;
+  refs.listeners.textContent = apiState.listeners === null ? '' : `${apiState.listeners} يستمعون الآن`;
 
   refs.miniTitle.textContent = apiState.title || activeProgram?.title || 'راديو حبق';
   refs.miniArtist.textContent = apiState.artist || activeProgram?.title || 'البث المباشر';
@@ -240,11 +235,10 @@ function renderHero() {
 }
 
 async function togglePlayback() {
-  if (!apiState.streamUrl) return;
+  if (!apiState.streamUrl || !onAir) return;
 
   if (audio.paused) {
-    if (audio.src !== apiState.streamUrl) audio.src = apiState.streamUrl;
-
+    if (!audio.src) audio.src = apiState.streamUrl;
     try {
       await audio.play();
       refs.playerBar.hidden = false;
@@ -273,7 +267,9 @@ renderHero();
 
 const client = new RadioClient(radioConfig);
 client.start((result) => {
+  const previousStream = apiState.streamUrl;
   apiState = normalizeNowPlaying(result, radioConfig);
+  if (audio.paused && previousStream !== apiState.streamUrl) audio.removeAttribute('src');
   renderHero();
 });
 
