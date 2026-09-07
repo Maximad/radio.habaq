@@ -56,20 +56,28 @@ export class RadioClient {
 
 export function normalizeNowPlaying(result, config) {
   const np = result?.data;
-  const song = np?.now_playing?.song || {};
+  const current = np?.now_playing || {};
+  const song = current?.song || {};
   const live = np?.live || {};
   const station = np?.station || {};
   const mounts = station?.mounts || [];
+  const nextSong = np?.playing_next?.song || {};
 
   return {
     configured: result?.configured ?? false,
     connected: result?.connected ?? false,
+    isOnline: Boolean(np?.is_online),
     isLive: Boolean(live?.is_live),
     streamer: live?.streamer_name || '',
-    title: song?.title || 'راديو حبق',
+    title: song?.title || station?.name || 'راديو حبق',
     artist: song?.artist || '',
-    art: song?.art || '',
+    art: live?.art || song?.art || '',
     listeners: np?.listeners?.current ?? null,
+    elapsed: Number.isFinite(current?.elapsed) ? current.elapsed : null,
+    duration: Number.isFinite(current?.duration) ? current.duration : null,
+    playlist: current?.playlist || '',
+    nextTitle: nextSong?.title || '',
+    nextArtist: nextSong?.artist || '',
     history: Array.isArray(np?.song_history) ? np.song_history : [],
     streamUrl:
       config.streamUrl ||
