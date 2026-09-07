@@ -21,18 +21,21 @@ export const schedule = [
   {
     day: 'الأحد',
     time: '20:00',
+    durationMinutes: 60,
     title: 'المسّال الموسيقي',
     description: 'جلسة استماع مخصصة لألبوم، فنان، أو تجربة موسيقية.',
   },
   {
     day: 'الثلاثاء',
     time: '20:00',
+    durationMinutes: 60,
     title: 'راديو مكسور',
     description: 'موسيقى بديلة وحوار مع موسيقيين من سوريا والمنطقة والشتات.',
   },
   {
     day: 'الخميس',
     time: '20:00',
+    durationMinutes: 120,
     title: 'ليلة حبق',
     description: 'بث موسيقي حي أو DJ set واختيارات ليلية.',
   },
