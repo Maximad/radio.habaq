@@ -54,6 +54,13 @@ export class RadioClient {
   }
 }
 
+export function formatPlaylistName(value = '') {
+  return value
+    .replace(/^\s*\d+\s*[-–—.:)]\s*/u, '')
+    .split('|')[0]
+    .trim();
+}
+
 export function normalizeNowPlaying(result, config) {
   const np = result?.data;
   const current = np?.now_playing || {};
@@ -62,6 +69,7 @@ export function normalizeNowPlaying(result, config) {
   const station = np?.station || {};
   const mounts = station?.mounts || [];
   const nextSong = np?.playing_next?.song || {};
+  const playlistRaw = current?.playlist || '';
 
   return {
     configured: result?.configured ?? false,
@@ -75,7 +83,8 @@ export function normalizeNowPlaying(result, config) {
     listeners: np?.listeners?.current ?? null,
     elapsed: Number.isFinite(current?.elapsed) ? current.elapsed : null,
     duration: Number.isFinite(current?.duration) ? current.duration : null,
-    playlist: current?.playlist || '',
+    playlistRaw,
+    playlist: formatPlaylistName(playlistRaw),
     nextTitle: nextSong?.title || '',
     nextArtist: nextSong?.artist || '',
     history: Array.isArray(np?.song_history) ? np.song_history : [],
