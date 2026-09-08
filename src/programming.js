@@ -1,3 +1,5 @@
+import { schedule } from './config.js';
+
 function withPresenter(program) {
   return program?.presenter ? `مع ${program.presenter}` : '';
 }
@@ -13,12 +15,12 @@ function comparable(value = '') {
     .trim();
 }
 
-export function matchProgramToPlaylist(apiState, schedule = []) {
+export function matchProgramToPlaylist(apiState, programs = schedule) {
   const playlist = comparable(apiState?.playlistDisplay || apiState?.playlist || '');
   if (!playlist) return null;
 
   return (
-    schedule.find((program) => {
+    programs.find((program) => {
       const title = comparable(program?.title || '');
       return title && (playlist.includes(title) || title.includes(playlist));
     }) || null
@@ -33,6 +35,7 @@ export function resolveBroadcastPresentation({
 }) {
   const connected = Boolean(apiState?.connected);
   const onAir = Boolean(connected && (apiState?.isOnline || apiState?.isLive));
+  const program = apiState?.isLive ? activeProgram : matchProgramToPlaylist(apiState);
 
   if (!onAir) {
     const connectionFailed = Boolean(apiState?.configured && !connected);
@@ -55,23 +58,23 @@ export function resolveBroadcastPresentation({
     };
   }
 
-  if (apiState.isLive && activeProgram) {
-    const presenter = withPresenter(activeProgram);
+  if (apiState.isLive && program) {
+    const presenter = withPresenter(program);
     return {
       mode: 'live-program',
       onAir: true,
       statusLabel: 'مباشر الآن',
       badgeLabel: 'مباشر الآن',
       modeLabel: 'برنامج مباشر',
-      programLabel: activeProgram.format || 'برنامج مباشر',
-      title: activeProgram.title,
-      subtitle: presenter || activeProgram.description || radioConfig.tagline,
-      source: activeProgram.presenter || apiState.streamer || 'استوديو حبق',
-      cardTitle: activeProgram.title,
+      programLabel: program.format || 'برنامج مباشر',
+      title: program.title,
+      subtitle: presenter || program.description || radioConfig.tagline,
+      source: program.presenter || apiState.streamer || 'استوديو حبق',
+      cardTitle: program.title,
       cardSubtitle: presenter || 'مباشر الآن',
-      dockTitle: activeProgram.title,
+      dockTitle: program.title,
       dockSubtitle: presenter || 'مباشر الآن',
-      documentTitle: `${activeProgram.title} — مباشر — راديو حبق`,
+      documentTitle: `${program.title} — مباشر — راديو حبق`,
       useArtwork: true,
     };
   }
@@ -96,23 +99,23 @@ export function resolveBroadcastPresentation({
     };
   }
 
-  if (activeProgram) {
-    const presenter = withPresenter(activeProgram);
+  if (program) {
+    const presenter = withPresenter(program);
     return {
       mode: 'program',
       onAir: true,
       statusLabel: 'على الهواء الآن',
       badgeLabel: 'على الهواء الآن',
-      modeLabel: activeProgram.format || 'برنامج',
-      programLabel: activeProgram.title,
-      title: apiState.title || activeProgram.title,
-      subtitle: apiState.artist || presenter || activeProgram.description || radioConfig.tagline,
+      modeLabel: program.format || 'برنامج',
+      programLabel: program.title,
+      title: apiState.title || program.title,
+      subtitle: apiState.artist || presenter || program.description || radioConfig.tagline,
       source: presenter || apiState.playlistDisplay || 'مكتبة راديو حبق',
-      cardTitle: activeProgram.title,
-      cardSubtitle: trackLine(apiState) || presenter || activeProgram.description || '',
-      dockTitle: apiState.title || activeProgram.title,
-      dockSubtitle: apiState.artist || activeProgram.title,
-      documentTitle: `${activeProgram.title} — راديو حبق`,
+      cardTitle: program.title,
+      cardSubtitle: trackLine(apiState) || presenter || program.description || '',
+      dockTitle: apiState.title || program.title,
+      dockSubtitle: apiState.artist || program.title,
+      documentTitle: `${program.title} — راديو حبق`,
       useArtwork: true,
     };
   }
