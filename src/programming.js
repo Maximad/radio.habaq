@@ -6,6 +6,25 @@ function trackLine(apiState) {
   return [apiState?.title, apiState?.artist].filter(Boolean).join(' — ');
 }
 
+function comparable(value = '') {
+  return value
+    .toLocaleLowerCase('ar')
+    .replace(/[\sـ_\-|/\\:]+/gu, ' ')
+    .trim();
+}
+
+export function matchProgramToPlaylist(apiState, schedule = []) {
+  const playlist = comparable(apiState?.playlistDisplay || apiState?.playlist || '');
+  if (!playlist) return null;
+
+  return (
+    schedule.find((program) => {
+      const title = comparable(program?.title || '');
+      return title && (playlist.includes(title) || title.includes(playlist));
+    }) || null
+  );
+}
+
 export function resolveBroadcastPresentation({
   apiState,
   activeProgram,
