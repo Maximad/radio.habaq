@@ -47,7 +47,7 @@ export function resolveBroadcastPresentation({
       programLabel: activeProgram.format || 'برنامج مباشر',
       title: activeProgram.title,
       subtitle: presenter || activeProgram.description || radioConfig.tagline,
-      source: apiState.streamer || activeProgram.presenter || 'استوديو حبق',
+      source: activeProgram.presenter || apiState.streamer || 'استوديو حبق',
       cardTitle: activeProgram.title,
       cardSubtitle: presenter || 'مباشر الآن',
       dockTitle: activeProgram.title,
