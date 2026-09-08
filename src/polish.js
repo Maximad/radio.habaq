@@ -1,4 +1,5 @@
 import './polish.css';
+import './brand-tighten.css';
 
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -21,6 +22,33 @@ function setupPolish() {
   artist?.setAttribute('aria-live', 'polite');
   dock?.setAttribute('role', 'region');
   dock?.setAttribute('aria-label', 'مشغل راديو حبق');
+
+  const brandMark = header.querySelector('.brand-mark');
+  if (brandMark && !header.querySelector('.brand-logo')) {
+    const logo = document.createElement('img');
+    logo.className = 'brand-logo';
+    logo.src = `${import.meta.env.BASE_URL}habaq-logo.svg`;
+    logo.alt = '';
+    logo.setAttribute('aria-hidden', 'true');
+    brandMark.replaceWith(logo);
+  }
+
+  const footerBrand = document.querySelector('.site-footer > span:first-child');
+  if (footerBrand && !document.querySelector('.footer-brand-lockup')) {
+    const lockup = document.createElement('span');
+    lockup.className = 'footer-brand-lockup';
+
+    const logo = document.createElement('img');
+    logo.src = `${import.meta.env.BASE_URL}habaq-logo.svg`;
+    logo.alt = '';
+    logo.setAttribute('aria-hidden', 'true');
+
+    const label = document.createElement('span');
+    label.textContent = footerBrand.textContent || 'راديو حبق';
+
+    lockup.append(logo, label);
+    footerBrand.replaceWith(lockup);
+  }
 
   const updateHeader = () => {
     header.classList.toggle('is-scrolled', window.scrollY > 24);
