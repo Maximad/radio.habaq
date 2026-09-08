@@ -1,8 +1,8 @@
 const trimSlash = (value = '') => value.replace(/\/+$/, '');
 
-const DEFAULT_AZURACAST_URL = 'https://radio.habaq.media';
+const DEFAULT_AZURACAST_URL = 'https://cast.habaq.media';
 const DEFAULT_STATION_SHORTCODE = 'habaq';
-const DEFAULT_STREAM_URL = 'https://radio.habaq.media/listen/habaq/radio.mp3';
+const DEFAULT_STREAM_URL = 'https://cast.habaq.media/listen/habaq/radio.mp3';
 
 const azuracastUrl = trimSlash(
   import.meta.env.VITE_AZURACAST_URL || DEFAULT_AZURACAST_URL,
