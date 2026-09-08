@@ -1,6 +1,8 @@
 import './styles.css';
+import './programming.css';
 import { radioConfig, schedule } from './config.js';
 import { RadioClient, normalizeNowPlaying } from './radio.js';
+import { resolveBroadcastPresentation } from './programming.js';
 
 const DAY_INDEX = {
   الأحد: 0,
@@ -48,7 +50,10 @@ app.innerHTML = `
             <span class="listeners" data-listeners hidden></span>
           </div>
 
-          <p class="program-label" data-program-label>راديو حبق</p>
+          <div class="program-context">
+            <span class="mode-chip" data-mode-chip>راديو حبق</span>
+            <p class="program-label" data-program-label>راديو حبق</p>
+          </div>
           <h1 data-title>الصوت يصل.</h1>
           <p class="artist-line" data-artist>من السويداء إلى أي مكان.</p>
 
@@ -154,6 +159,7 @@ const refs = {
   liveBadge: pick('[data-live-badge]'),
   liveLabel: pick('[data-live-label]'),
   listeners: pick('[data-listeners]'),
+  modeChip: pick('[data-mode-chip]'),
   programLabel: pick('[data-program-label]'),
   title: pick('[data-title]'),
   artist: pick('[data-artist]'),
@@ -275,11 +281,16 @@ function renderSchedule() {
 
     const copy = document.createElement('div');
     copy.className = 'schedule-copy';
+    const format = document.createElement('span');
+    format.className = 'schedule-format';
+    format.textContent = program.presenter
+      ? `${program.format || 'برنامج'} · مع ${program.presenter}`
+      : program.format || 'برنامج';
     const title = document.createElement('h3');
     title.textContent = program.title;
     const description = document.createElement('p');
     description.textContent = program.description;
-    copy.append(title, description);
+    copy.append(format, title, description);
 
     const arrow = document.createElement('span');
     arrow.className = 'schedule-arrow';
@@ -352,50 +363,42 @@ function renderPlaybackState() {
 function renderBroadcast() {
   ({ current: activeProgram, next: nextProgram } = getProgramState());
 
-  // AzuraCast's top-level is_online flag describes whether the station itself is
-  // broadcasting. live.is_live only describes whether a human streamer is connected.
-  onAir = Boolean(apiState.connected && (apiState.isOnline || apiState.isLive));
+  const presentation = resolveBroadcastPresentation({
+    apiState,
+    activeProgram,
+    nextProgram,
+    radioConfig,
+  });
+
+  onAir = presentation.onAir;
   const canListen = Boolean(onAir && apiState.streamUrl);
+  document.body.dataset.broadcastMode = presentation.mode;
 
   refs.play.disabled = !canListen;
   refs.playerDock.hidden = !canListen;
   refs.headerStatus.classList.toggle('is-online', onAir);
   refs.liveBadge.classList.toggle('is-online', onAir);
+  refs.headerStatusText.textContent = presentation.statusLabel;
+  refs.liveLabel.textContent = presentation.badgeLabel;
+  refs.modeChip.textContent = presentation.modeLabel;
+  refs.programLabel.textContent = presentation.programLabel;
+  refs.title.textContent = presentation.title;
+  refs.artist.textContent = presentation.subtitle;
+  refs.source.textContent = presentation.source;
+  refs.cardTitle.textContent = presentation.cardTitle;
+  refs.cardArtist.textContent = presentation.cardSubtitle;
+  refs.dockTitle.textContent = presentation.dockTitle;
+  refs.dockArtist.textContent = presentation.dockSubtitle;
+  document.title = presentation.documentTitle;
 
-  if (onAir) {
-    const liveText = apiState.isLive ? 'مباشر الآن' : 'على الهواء الآن';
-    refs.headerStatusText.textContent = liveText;
-    refs.liveLabel.textContent = liveText;
-    refs.programLabel.textContent = activeProgram?.title || apiState.playlist || 'راديو حبق';
-    refs.title.textContent = apiState.title || activeProgram?.title || 'راديو حبق';
-    refs.artist.textContent = apiState.artist || activeProgram?.description || radioConfig.tagline;
-    refs.source.textContent = apiState.isLive
-      ? apiState.streamer || 'بث مباشر'
-      : apiState.playlist || 'مكتبة راديو حبق';
-    refs.listeners.hidden = apiState.listeners === null;
-    refs.listeners.textContent = apiState.listeners === null ? '' : `${apiState.listeners} مستمع الآن`;
-    refs.cardTitle.textContent = apiState.title || 'راديو حبق';
-    refs.cardArtist.textContent = apiState.artist || refs.programLabel.textContent;
-    refs.dockTitle.textContent = apiState.title || 'راديو حبق';
-    refs.dockArtist.textContent = apiState.artist || refs.programLabel.textContent;
-    setImage(refs.cover, apiState.art);
-    refs.coverFallback.hidden = Boolean(apiState.art);
-    document.title = `${apiState.title || 'على الهواء'} — راديو حبق`;
-  } else {
-    if (!audio.paused) audio.pause();
-    refs.headerStatusText.textContent = apiState.configured && !apiState.connected ? 'تعذر الاتصال' : 'خارج البث';
-    refs.liveLabel.textContent = apiState.configured && !apiState.connected ? 'تعذر قراءة حالة البث' : 'البث القادم';
-    refs.programLabel.textContent = nextProgram?.title || 'راديو حبق';
-    refs.title.textContent = nextProgram ? `${nextProgram.day} · ${nextProgram.time}` : 'نعود قريباً.';
-    refs.artist.textContent = nextProgram?.description || radioConfig.tagline;
-    refs.source.textContent = 'راديو حبق';
-    refs.listeners.hidden = true;
-    refs.cardTitle.textContent = nextProgram?.title || 'راديو حبق';
-    refs.cardArtist.textContent = nextProgram ? `${nextProgram.day} · ${nextProgram.time}` : '';
-    refs.coverFallback.hidden = false;
-    setImage(refs.cover, '');
-    document.title = 'راديو حبق';
-  }
+  refs.listeners.hidden = !onAir || apiState.listeners === null;
+  refs.listeners.textContent = refs.listeners.hidden ? '' : `${apiState.listeners} مستمع الآن`;
+
+  const artwork = presentation.useArtwork ? apiState.art : '';
+  setImage(refs.cover, artwork);
+  refs.coverFallback.hidden = Boolean(artwork);
+
+  if (!onAir && !audio.paused) audio.pause();
 
   renderProgress();
   renderPlaybackState();

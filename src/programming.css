@@ -1,0 +1,74 @@
+.program-context {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.mode-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 3px 8px;
+  border: 1px solid rgba(202, 255, 61, 0.28);
+  border-radius: 999px;
+  color: var(--signal, #caff3d);
+  font-family: 'IBM Plex Sans Arabic', system-ui, sans-serif;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  white-space: nowrap;
+  background: rgba(202, 255, 61, 0.035);
+}
+
+.program-context .program-label {
+  margin: 0;
+}
+
+body[data-broadcast-mode='live-program'] .mode-chip,
+body[data-broadcast-mode='live'] .mode-chip {
+  background: var(--signal, #caff3d);
+  color: #090b09;
+  border-color: var(--signal, #caff3d);
+}
+
+body[data-broadcast-mode='live-program'] .live-badge,
+body[data-broadcast-mode='live'] .live-badge {
+  box-shadow: 0 0 0 1px rgba(202, 255, 61, 0.08) inset,
+    0 0 28px rgba(202, 255, 61, 0.08);
+}
+
+.schedule-format {
+  display: block;
+  margin-bottom: 9px;
+  color: var(--signal, #caff3d);
+  font-size: 10px;
+  line-height: 1.45;
+  opacity: 0.9;
+}
+
+.schedule-card.is-current .schedule-format::before {
+  content: '●';
+  margin-inline-end: 6px;
+  font-size: 8px;
+}
+
+@media (max-width: 680px) {
+  .program-context {
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .mode-chip {
+    min-height: 22px;
+    padding-inline: 7px;
+    font-size: 8px;
+  }
+
+  .schedule-format {
+    margin-bottom: 7px;
+    font-size: 9px;
+  }
+}

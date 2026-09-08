@@ -24,23 +24,33 @@ export const radioConfig = {
 
 export const schedule = [
   {
+    slug: 'al-masaal-al-musiqi',
     day: 'الأحد',
     time: '20:00',
     durationMinutes: 60,
+    kind: 'special',
+    format: 'جلسة استماع',
     title: 'المسّال الموسيقي',
     description: 'جلسة استماع مخصصة لألبوم، فنان، أو تجربة موسيقية.',
   },
   {
+    slug: 'radio-maksour',
     day: 'الثلاثاء',
     time: '20:00',
     durationMinutes: 60,
+    kind: 'live',
+    format: 'حوار وموسيقى',
     title: 'راديو مكسور',
+    presenter: 'يزن السمان',
     description: 'موسيقى بديلة وحوار مع موسيقيين من سوريا والمنطقة والشتات.',
   },
   {
+    slug: 'laylet-habaq',
     day: 'الخميس',
     time: '20:00',
     durationMinutes: 120,
+    kind: 'live',
+    format: 'بث حي / DJ set',
     title: 'ليلة حبق',
     description: 'بث موسيقي حي أو DJ set واختيارات ليلية.',
   },
