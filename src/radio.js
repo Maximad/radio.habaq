@@ -69,7 +69,7 @@ export function normalizeNowPlaying(result, config) {
   const station = np?.station || {};
   const mounts = station?.mounts || [];
   const nextSong = np?.playing_next?.song || {};
-  const playlist = current?.playlist || '';
+  const playlistRaw = current?.playlist || '';
 
   return {
     configured: result?.configured ?? false,
@@ -83,8 +83,8 @@ export function normalizeNowPlaying(result, config) {
     listeners: np?.listeners?.current ?? null,
     elapsed: Number.isFinite(current?.elapsed) ? current.elapsed : null,
     duration: Number.isFinite(current?.duration) ? current.duration : null,
-    playlist,
-    playlistDisplay: formatPlaylistName(playlist),
+    playlistRaw,
+    playlist: formatPlaylistName(playlistRaw),
     nextTitle: nextSong?.title || '',
     nextArtist: nextSong?.artist || '',
     history: Array.isArray(np?.song_history) ? np.song_history : [],
